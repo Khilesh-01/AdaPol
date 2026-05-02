@@ -1,0 +1,116 @@
+{
+  "snapshot_id": "snap_current_20240201",
+  "timestamp": "2024-02-01T09:00:00",
+  "provider": "aws",
+  "policies": {
+    "policy_lambda_exec": {
+      "PolicyName": "LambdaExecutionPolicy",
+      "PolicyId": "policy_lambda_exec",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+            "logs:CreateLogGroup", "logs:PutLogEvents",
+            "iam:AttachRolePolicy"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "policy_data_access": {
+      "PolicyName": "DataAccessPolicy",
+      "PolicyId": "policy_data_access",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query",
+            "dynamodb:Scan", "dynamodb:DeleteItem"
+          ],
+          "Resource": "arn:aws:dynamodb:us-east-1:123456789:table/orders"
+        }
+      ]
+    }
+  },
+  "roles": {
+    "upload_handler_role": {
+      "RoleId": "AROA_UPLOAD",
+      "RoleName": "upload_handler_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject", "s3:PutObject", "s3:DeleteObject",
+                "logs:CreateLogGroup", "logs:PutLogEvents",
+                "iam:AttachRolePolicy"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "order_processor_role": {
+      "RoleId": "AROA_ORDER",
+      "RoleName": "order_processor_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query",
+                "dynamodb:Scan", "dynamodb:DeleteItem", "s3:GetObject",
+                "kms:Decrypt"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "auth_service_role": {
+      "RoleId": "AROA_AUTH",
+      "RoleName": "auth_service_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["sts:AssumeRole", "logs:CreateLogGroup", "logs:PutLogEvents"],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "new_reporting_role": {
+      "RoleId": "AROA_REPORT",
+      "RoleName": "new_reporting_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["s3:GetObject", "s3:ListBucket", "dynamodb:Query", "iam:*"],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "permissions_by_role": {},
+  "high_risk_permissions": {},
+  "wildcard_permissions": {},
+  "metadata": {
+    "environment": "production",
+    "account_id": "123456789012",
+    "region": "us-east-1",
+    "created_by": "adapol-drift-scan",
+    "drift_from": "snap_baseline_20240101"
+  }
+}

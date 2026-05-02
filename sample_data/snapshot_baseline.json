@@ -1,0 +1,85 @@
+{
+  "snapshot_id": "snap_baseline_20240101",
+  "timestamp": "2024-01-01T09:00:00",
+  "provider": "aws",
+  "policies": {
+    "policy_lambda_exec": {
+      "PolicyName": "LambdaExecutionPolicy",
+      "PolicyId": "policy_lambda_exec",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["s3:GetObject", "s3:PutObject", "logs:CreateLogGroup", "logs:PutLogEvents"],
+          "Resource": "*"
+        }
+      ]
+    },
+    "policy_data_access": {
+      "PolicyName": "DataAccessPolicy",
+      "PolicyId": "policy_data_access",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query"],
+          "Resource": "arn:aws:dynamodb:us-east-1:123456789:table/orders"
+        }
+      ]
+    }
+  },
+  "roles": {
+    "upload_handler_role": {
+      "RoleId": "AROA_UPLOAD",
+      "RoleName": "upload_handler_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["s3:GetObject", "s3:PutObject", "logs:CreateLogGroup", "logs:PutLogEvents"],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "order_processor_role": {
+      "RoleId": "AROA_ORDER",
+      "RoleName": "order_processor_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:Query", "s3:GetObject"],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    },
+    "auth_service_role": {
+      "RoleId": "AROA_AUTH",
+      "RoleName": "auth_service_role",
+      "policies": [
+        {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": ["sts:AssumeRole", "logs:CreateLogGroup", "logs:PutLogEvents"],
+              "Resource": "*"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "permissions_by_role": {},
+  "high_risk_permissions": {},
+  "wildcard_permissions": {},
+  "metadata": {
+    "environment": "production",
+    "account_id": "123456789012",
+    "region": "us-east-1",
+    "created_by": "adapol-baseline"
+  }
+}

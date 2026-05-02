@@ -1,0 +1,220 @@
+{
+  "timestamp": "2026-05-03T00:10:09.297917",
+  "permissions_tested": [
+    "dynamodb:GetItem",
+    "dynamodb:PutItem",
+    "dynamodb:Query",
+    "logs:PutLogEvents",
+    "s3:DeleteObject",
+    "s3:GetObject",
+    "s3:PutObject",
+    "sts:AssumeRole"
+  ],
+  "results": [
+    {
+      "simulation_id": "sim_20260503_001009_dynamodb_GetItem",
+      "timestamp": "2026-05-03T00:10:09.289657",
+      "permission": "dynamodb:GetItem",
+      "functions_affected": [
+        "order_processor"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "order_processor"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "order_processor": "Removing dynamodb:GetItem may break function (used but not critical)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: dynamodb:GetItem is OPTIONAL but used by order_processor"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 1 function(s) in optional contexts - Test thoroughly before removing"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_dynamodb_PutItem",
+      "timestamp": "2026-05-03T00:10:09.289733",
+      "permission": "dynamodb:PutItem",
+      "functions_affected": [
+        "order_processor"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "order_processor"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "order_processor": "Removing dynamodb:PutItem may break function (used but not critical)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: dynamodb:PutItem is OPTIONAL but used by order_processor"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 1 function(s) in optional contexts - Test thoroughly before removing"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_dynamodb_Query",
+      "timestamp": "2026-05-03T00:10:09.289784",
+      "permission": "dynamodb:Query",
+      "functions_affected": [
+        "reporting_service",
+        "order_processor"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "reporting_service",
+        "order_processor"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "reporting_service": "Removing dynamodb:Query may break function (used but not critical)",
+        "order_processor": "Removing dynamodb:Query may break function (used but not critical)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: dynamodb:Query is OPTIONAL but used by reporting_service",
+        "\ud83d\udfe1 CAUTION: dynamodb:Query is OPTIONAL but used by order_processor"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 2 function(s) in optional contexts - Test thoroughly before removing"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_logs_PutLogEvents",
+      "timestamp": "2026-05-03T00:10:09.289828",
+      "permission": "logs:PutLogEvents",
+      "functions_affected": [
+        "upload_handler"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "upload_handler"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "upload_handler": "Removing logs:PutLogEvents may break function (used but not critical)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: logs:PutLogEvents is OPTIONAL but used by upload_handler"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 1 function(s) in optional contexts - Test thoroughly before removing"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_s3_DeleteObject",
+      "timestamp": "2026-05-03T00:10:09.289876",
+      "permission": "s3:DeleteObject",
+      "functions_affected": [
+        "upload_handler"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "upload_handler"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "upload_handler": "Removing s3:DeleteObject may break function (used but not critical)"
+      },
+      "usage_pattern": "never_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: s3:DeleteObject is OPTIONAL but used by upload_handler"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 1 function(s) in optional contexts - Test thoroughly before removing"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_s3_GetObject",
+      "timestamp": "2026-05-03T00:10:09.289923",
+      "permission": "s3:GetObject",
+      "functions_affected": [
+        "reporting_service",
+        "order_processor",
+        "upload_handler"
+      ],
+      "safety_level": "unsafe_to_remove",
+      "confidence_score": 0.95,
+      "functions_would_break": [
+        "upload_handler"
+      ],
+      "functions_possibly_break": [
+        "reporting_service",
+        "order_processor"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "reporting_service": "Removing s3:GetObject may break function (used but not critical)",
+        "order_processor": "Removing s3:GetObject may break function (used but not critical)",
+        "upload_handler": "Removing s3:GetObject will break function (required for execution)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: s3:GetObject is OPTIONAL but used by reporting_service",
+        "\ud83d\udfe1 CAUTION: s3:GetObject is OPTIONAL but used by order_processor",
+        "\ud83d\udd34 UNSAFE: s3:GetObject is REQUIRED for upload_handler"
+      ],
+      "recommendation": "\ud83d\udd34 UNSAFE: Permission is REQUIRED by 1 function(s) - DO NOT REMOVE without alternative implementation"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_s3_PutObject",
+      "timestamp": "2026-05-03T00:10:09.289966",
+      "permission": "s3:PutObject",
+      "functions_affected": [
+        "upload_handler"
+      ],
+      "safety_level": "unsafe_to_remove",
+      "confidence_score": 0.95,
+      "functions_would_break": [
+        "upload_handler"
+      ],
+      "functions_possibly_break": [],
+      "functions_safe": [],
+      "failure_predictions": {
+        "upload_handler": "Removing s3:PutObject will break function (required for execution)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udd34 UNSAFE: s3:PutObject is REQUIRED for upload_handler"
+      ],
+      "recommendation": "\ud83d\udd34 UNSAFE: Permission is REQUIRED by 1 function(s) - DO NOT REMOVE without alternative implementation"
+    },
+    {
+      "simulation_id": "sim_20260503_001009_sts_AssumeRole",
+      "timestamp": "2026-05-03T00:10:09.290005",
+      "permission": "sts:AssumeRole",
+      "functions_affected": [
+        "auth_service"
+      ],
+      "safety_level": "potentially_unsafe",
+      "confidence_score": 0.7,
+      "functions_would_break": [],
+      "functions_possibly_break": [
+        "auth_service"
+      ],
+      "functions_safe": [],
+      "failure_predictions": {
+        "auth_service": "Removing sts:AssumeRole may break function (used but not critical)"
+      },
+      "usage_pattern": "rarely_used",
+      "total_functions_checked": 4,
+      "warning_messages": [
+        "\ud83d\udfe1 CAUTION: sts:AssumeRole is OPTIONAL but used by auth_service"
+      ],
+      "recommendation": "\ud83d\udfe1 CAUTION: Permission used by 1 function(s) in optional contexts - Test thoroughly before removing"
+    }
+  ]
+}

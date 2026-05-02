@@ -34,9 +34,17 @@ from .security_graph import (
 from .simulation import (
     PolicyDriftDetector,
     PolicySnapshot,
+    DriftReport,
+    RiskCategory,
     PermissionSimulator,
     PermissionUsageAnalyzer,
     PermissionUsageEvent,
+    SimulationResult,
+    SafetyLevel,
+    PermissionUsagePattern,
+    FailurePredictor,
+    FailurePredictionReport,
+    FailureSeverity,
 )
 
 console = Console()
@@ -441,6 +449,453 @@ def show_risk_report(terraform: str, events: str, provider: str, output: str, fo
         console.print(f"[red]❌ Error: {e}[/red]")
         import traceback
         traceback.print_exc()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POLICY DRIFT COMMANDS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@cli.command("save-policy-snapshot")
+@click.option('--snapshot', '-s', type=click.Path(exists=True), required=True,
+              help='JSON file describing the current policy state')
+@click.option('--output', '-o', default='snapshots', help='Directory to save snapshot')
+@click.option('--tag', '-t', default='', help='Optional label/tag for this snapshot')
+def save_policy_snapshot(snapshot: str, output: str, tag: str):
+    """Save a timestamped policy snapshot for future drift comparison"""
+
+    console.print(Panel.fit("📸 Saving Policy Snapshot", style="bold blue"))
+
+    try:
+        with open(snapshot, 'r') as f:
+            raw = json.load(f)
+
+        if tag:
+            raw.setdefault('metadata', {})['tag'] = tag
+
+        snap = PolicySnapshot.from_dict(raw)
+
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        out_dir = Path(output)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / f"snapshot_{snap.snapshot_id}_{ts}.json"
+
+        detector = PolicyDriftDetector()
+        detector.save_snapshot(snap, filepath=out_file)
+
+        # Summary table
+        table = Table(title="Snapshot Saved")
+        table.add_column("Field", style="cyan")
+        table.add_column("Value", style="white")
+        table.add_row("Snapshot ID", snap.snapshot_id)
+        table.add_row("Timestamp", snap.timestamp)
+        table.add_row("Provider", snap.provider)
+        table.add_row("Roles", str(len(snap.roles)))
+        table.add_row("Total Permissions", str(len(snap.get_all_permissions())))
+        table.add_row("High-Risk Permissions",
+                      str(sum(len(v) for v in snap.high_risk_permissions.values())))
+        table.add_row("Saved To", str(out_file))
+        if tag:
+            table.add_row("Tag", tag)
+        console.print(table)
+        console.print(f"\n[green]✅ Snapshot saved → {out_file}[/green]")
+
+    except Exception as e:
+        console.print(f"[red]❌ Error saving snapshot: {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("compare-policy")
+@click.option('--old', type=click.Path(exists=True), required=True,
+              help='Path to the OLD (baseline) snapshot JSON')
+@click.option('--new', 'new_snap', type=click.Path(exists=True), required=True,
+              help='Path to the NEW (current) snapshot JSON')
+@click.option('--output', '-o', default='', help='Optional file to write drift report JSON')
+@click.option('--format', '-f', type=click.Choice(['table', 'json', 'both']),
+              default='table', help='Output format')
+@click.option('--show-all', is_flag=True, help='Show all changes, not just high-risk')
+def compare_policy(old: str, new_snap: str, output: str, format: str, show_all: bool):
+    """Compare two policy snapshots and show a detailed drift report"""
+
+    console.print(Panel.fit("🔍 Policy Drift Comparison", style="bold yellow"))
+
+    try:
+        with open(old, 'r') as f:
+            old_data = json.load(f)
+        with open(new_snap, 'r') as f:
+            new_data = json.load(f)
+
+        old_snapshot = PolicySnapshot.from_dict(old_data)
+        new_snapshot = PolicySnapshot.from_dict(new_data)
+
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Analysing drift...", total=None)
+            detector = PolicyDriftDetector()
+            report = detector.compare_snapshots(old_snapshot, new_snapshot)
+            p.update(t, completed=True)
+
+        if format in ('table', 'both'):
+            _display_drift_report(report, show_all)
+
+        if format in ('json', 'both'):
+            report_dict = report.to_dict()
+            if output:
+                Path(output).parent.mkdir(parents=True, exist_ok=True)
+                with open(output, 'w') as f:
+                    json.dump(report_dict, f, indent=2)
+                console.print(f"[green]✅ Drift report saved → {output}[/green]")
+            else:
+                syntax = Syntax(json.dumps(report_dict, indent=2), 'json', theme='monokai')
+                console.print(syntax)
+
+    except Exception as e:
+        console.print(f"[red]❌ Error comparing snapshots: {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SIMULATION COMMANDS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@cli.command("simulate-removal")
+@click.option('--logs', '-l', type=click.Path(exists=True), required=True,
+              help='Runtime logs JSON file')
+@click.option('--permission', '-p', required=True,
+              help='Permission to simulate removing (e.g. s3:GetObject)')
+@click.option('--output', '-o', default='', help='Optional file to write simulation JSON')
+@click.option('--format', '-f', type=click.Choice(['table', 'json', 'both']),
+              default='table', help='Output format')
+def simulate_removal(logs: str, permission: str, output: str, format: str):
+    """Simulate removing a permission and predict whether execution will break"""
+
+    console.print(Panel.fit(f"🧪 Simulating Removal: [bold]{permission}[/bold]", style="bold cyan"))
+
+    try:
+        analyzer = PermissionUsageAnalyzer()
+        count = analyzer.load_events(Path(logs))
+        console.print(f"  Loaded [cyan]{count}[/cyan] runtime events")
+
+        analyzer.analyze_events()
+        console.print(f"  Profiled [cyan]{len(analyzer.function_profiles)}[/cyan] functions")
+
+        simulator = PermissionSimulator(analyzer)
+        result = simulator.simulate_removal(permission)
+
+        if format in ('table', 'both'):
+            _display_simulation_result(result)
+
+        if format in ('json', 'both'):
+            result_dict = result.to_dict()
+            if output:
+                Path(output).parent.mkdir(parents=True, exist_ok=True)
+                with open(output, 'w') as f:
+                    json.dump(result_dict, f, indent=2)
+                console.print(f"[green]✅ Result saved → {output}[/green]")
+            else:
+                syntax = Syntax(json.dumps(result_dict, indent=2), 'json', theme='monokai')
+                console.print(syntax)
+
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("simulate-batch")
+@click.option('--logs', '-l', type=click.Path(exists=True), required=True,
+              help='Runtime logs JSON file')
+@click.option('--permissions', '-p', multiple=True,
+              help='Permissions to simulate (repeat flag for multiple)')
+@click.option('--all-observed', '-A', is_flag=True,
+              help='Simulate all permissions observed in logs')
+@click.option('--output', '-o', default='simulation_batch.json',
+              help='Output file for batch results')
+def simulate_batch(logs: str, permissions: tuple, all_observed: bool, output: str):
+    """Simulate removing multiple permissions in one run"""
+
+    console.print(Panel.fit("🧪 Batch Permission Simulation", style="bold cyan"))
+
+    try:
+        analyzer = PermissionUsageAnalyzer()
+        count = analyzer.load_events(Path(logs))
+        analyzer.analyze_events()
+        console.print(f"  Loaded [cyan]{count}[/cyan] events · "
+                      f"[cyan]{len(analyzer.function_profiles)}[/cyan] functions profiled")
+
+        simulator = PermissionSimulator(analyzer)
+
+        if all_observed:
+            perms_to_test = sorted(
+                set().union(*[p.permissions_used for p in analyzer.function_profiles.values()])
+            )
+        else:
+            perms_to_test = list(permissions)
+
+        if not perms_to_test:
+            console.print("[yellow]⚠️  No permissions specified. Use --permissions or --all-observed[/yellow]")
+            return
+
+        console.print(f"  Simulating removal of [bold]{len(perms_to_test)}[/bold] permission(s)…\n")
+
+        results = simulator.simulate_batch_removal(perms_to_test)
+
+        # Summary table
+        table = Table(title="Batch Simulation Results")
+        table.add_column("Permission", style="cyan", no_wrap=True)
+        table.add_column("Safety", style="white")
+        table.add_column("Confidence", style="yellow")
+        table.add_column("Usage Pattern", style="blue")
+        table.add_column("Breaks", style="red")
+        table.add_column("Caution", style="yellow")
+        table.add_column("Safe Fns", style="green")
+
+        for r in results:
+            safety_color = {
+                SafetyLevel.SAFE_TO_REMOVE: "green",
+                SafetyLevel.POTENTIALLY_UNSAFE: "yellow",
+                SafetyLevel.UNSAFE_TO_REMOVE: "red",
+                SafetyLevel.UNKNOWN: "white",
+            }.get(r.safety_level, "white")
+
+            table.add_row(
+                r.permission,
+                f"[{safety_color}]{r.safety_level.value}[/{safety_color}]",
+                f"{r.confidence_score:.0%}",
+                r.usage_pattern.value,
+                str(len(r.functions_would_break)),
+                str(len(r.functions_possibly_break)),
+                str(len(r.functions_safe)),
+            )
+
+        console.print(table)
+
+        # Save JSON
+        batch_data = {
+            "timestamp": datetime.now().isoformat(),
+            "permissions_tested": perms_to_test,
+            "results": [r.to_dict() for r in results],
+        }
+        with open(output, 'w') as f:
+            json.dump(batch_data, f, indent=2)
+        console.print(f"\n[green]✅ Batch results saved → {output}[/green]")
+
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("predict-failures")
+@click.option('--logs', '-l', type=click.Path(exists=True), required=True,
+              help='Runtime logs JSON file')
+@click.option('--permissions', '-p', multiple=True,
+              help='Permissions to evaluate (repeat flag for multiple)')
+@click.option('--all-observed', '-A', is_flag=True,
+              help='Evaluate all permissions found in logs')
+@click.option('--output', '-o', default='', help='Optional output file for report JSON')
+@click.option('--min-severity', '-m',
+              type=click.Choice(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'NONE']),
+              default='LOW', help='Minimum severity level to display')
+def predict_failures(logs: str, permissions: tuple, all_observed: bool,
+                     output: str, min_severity: str):
+    """Predict which functions break if permissions are removed, with specific warnings"""
+
+    console.print(Panel.fit("⚠️  Failure Prediction Engine", style="bold red"))
+
+    try:
+        analyzer = PermissionUsageAnalyzer()
+        count = analyzer.load_events(Path(logs))
+        analyzer.analyze_events()
+        console.print(f"  Loaded [cyan]{count}[/cyan] events · "
+                      f"[cyan]{len(analyzer.function_profiles)}[/cyan] functions profiled")
+
+        if all_observed:
+            perms_to_test = sorted(
+                set().union(*[p.permissions_used for p in analyzer.function_profiles.values()])
+            )
+        else:
+            perms_to_test = list(permissions)
+
+        if not perms_to_test:
+            console.print("[yellow]⚠️  No permissions specified. Use --permissions or --all-observed[/yellow]")
+            return
+
+        predictor = FailurePredictor(analyzer)
+        report = predictor.predict_failures(perms_to_test)
+
+        _display_failure_report(report, min_severity)
+
+        if output:
+            predictor.export_report(report, Path(output))
+            console.print(f"\n[green]✅ Prediction report saved → {output}[/green]")
+
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DISPLAY HELPERS — drift, simulation, failure prediction
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _display_drift_report(report, show_all: bool = False) -> None:
+    """Render a DriftReport to the console."""
+    risk_colors = {
+        "CRITICAL": "bold red",
+        "HIGH": "red",
+        "MEDIUM": "yellow",
+        "LOW": "blue",
+        "MINIMAL": "green",
+    }
+    risk_level = report.risk_level.value
+    color = risk_colors.get(risk_level, "white")
+
+    summary_text = (
+        f"[bold cyan]Report ID:[/bold cyan]            {report.report_id}\n"
+        f"[bold cyan]Compared:[/bold cyan]             "
+        f"{report.old_snapshot_id}  →  {report.new_snapshot_id}\n"
+        f"[bold cyan]Total Changes:[/bold cyan]        {report.total_changes}\n"
+        f"[bold cyan]Permissions Added:[/bold cyan]    {report.total_permissions_added}\n"
+        f"[bold cyan]Permissions Removed:[/bold cyan]  {report.total_permissions_removed}\n"
+        f"[bold cyan]High-Risk Additions:[/bold cyan]  {report.high_risk_additions}\n"
+        f"[bold cyan]Wildcard Additions:[/bold cyan]   {report.wildcard_additions}\n"
+        f"[bold cyan]Affected Roles:[/bold cyan]       {len(report.affected_roles)}\n"
+        f"[bold]Overall Risk:[/bold]         [{color}]{risk_level}[/{color}]"
+    )
+    console.print(Panel(summary_text, title="📊 Drift Summary", border_style=color))
+
+    # Changes table
+    changes = report.changes
+    if not show_all:
+        changes = [
+            c for c in changes
+            if c.risk_level and c.risk_level.value in ('CRITICAL', 'HIGH', 'MEDIUM')
+        ] or changes  # fallback: show all if nothing matches filter
+
+    if changes:
+        table = Table(title=f"Policy Changes  (showing {len(changes)} of {report.total_changes})")
+        table.add_column("Role", style="cyan", no_wrap=True)
+        table.add_column("Change", style="white")
+        table.add_column("Permission", style="blue", no_wrap=True)
+        table.add_column("Risk", style="red")
+        table.add_column("Wildcard", style="yellow")
+
+        for c in changes:
+            change_str = "[green]+ADDED[/green]" if c.change_type.value == "permission_added" \
+                         else "[red]-REMOVED[/red]"
+            risk_str = c.risk_level.value if c.risk_level else "MINIMAL"
+            risk_color = risk_colors.get(risk_str, "white")
+            table.add_row(
+                c.role_name[:25],
+                change_str,
+                c.permission,
+                f"[{risk_color}]{risk_str}[/{risk_color}]",
+                "⚠️" if c.is_wildcard else "",
+            )
+        console.print(table)
+
+    # Recommendations
+    if report.recommendations:
+        console.print("\n[bold]📋 Recommendations:[/bold]")
+        for rec in report.recommendations:
+            console.print(f"  {rec}")
+
+
+def _display_simulation_result(result) -> None:
+    """Render a SimulationResult to the console."""
+    safety_colors = {
+        SafetyLevel.SAFE_TO_REMOVE: "green",
+        SafetyLevel.POTENTIALLY_UNSAFE: "yellow",
+        SafetyLevel.UNSAFE_TO_REMOVE: "red",
+        SafetyLevel.UNKNOWN: "white",
+    }
+    color = safety_colors.get(result.safety_level, "white")
+
+    summary_text = (
+        f"[bold cyan]Permission:[/bold cyan]     {result.permission}\n"
+        f"[bold cyan]Safety:[/bold cyan]         [{color}]{result.safety_level.value}[/{color}]\n"
+        f"[bold cyan]Confidence:[/bold cyan]     {result.confidence_score:.0%}\n"
+        f"[bold cyan]Usage Pattern:[/bold cyan]  {result.usage_pattern.value}\n"
+        f"[bold cyan]Functions Checked:[/bold cyan] {result.total_functions_checked}\n"
+        f"[bold cyan]Would Break:[/bold cyan]    [red]{len(result.functions_would_break)}[/red]\n"
+        f"[bold cyan]Might Break:[/bold cyan]    [yellow]{len(result.functions_possibly_break)}[/yellow]\n"
+        f"[bold cyan]Safe:[/bold cyan]           [green]{len(result.functions_safe)}[/green]"
+    )
+    console.print(Panel(summary_text, title="🧪 Simulation Result", border_style=color))
+
+    if result.warning_messages:
+        console.print("\n[bold]⚠️  Warnings:[/bold]")
+        for msg in result.warning_messages:
+            console.print(f"  {msg}")
+
+    if result.failure_predictions:
+        table = Table(title="Failure Predictions")
+        table.add_column("Function", style="cyan")
+        table.add_column("Prediction", style="yellow")
+        for fn, pred in result.failure_predictions.items():
+            table.add_row(fn, pred)
+        console.print(table)
+
+    console.print(f"\n[bold]Recommendation:[/bold] {result.recommendation}")
+
+
+def _display_failure_report(report, min_severity: str = 'LOW') -> None:
+    """Render a FailurePredictionReport to the console."""
+    severity_order = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'NONE']
+    min_idx = severity_order.index(min_severity)
+
+    summary_text = (
+        f"[bold cyan]Report ID:[/bold cyan]          {report.report_id}\n"
+        f"[bold cyan]Permissions Evaluated:[/bold cyan] {len(report.permissions_evaluated)}\n"
+        f"[bold cyan]Functions Checked:[/bold cyan]  {report.total_functions_checked}\n"
+        f"[bold red]Critical Warnings:[/bold red]  {report.critical_count}\n"
+        f"[bold orange3]High Warnings:[/bold orange3]      {report.high_count}\n"
+        f"[bold yellow]Medium Warnings:[/bold yellow]    {report.medium_count}\n"
+        f"[bold blue]Low Warnings:[/bold blue]       {report.low_count}\n"
+        f"[bold green]Safe Permissions:[/bold green]   {len(report.safe_permissions)}"
+    )
+    console.print(Panel(summary_text, title="⚠️  Failure Prediction Report", border_style="red"))
+
+    # Filter by min severity
+    filtered = [
+        w for w in report.sorted_warnings()
+        if severity_order.index(w.severity.value) <= min_idx
+    ]
+
+    if filtered:
+        table = Table(title=f"Failure Warnings  (≥ {min_severity})")
+        table.add_column("Severity", style="white", no_wrap=True)
+        table.add_column("Permission", style="cyan", no_wrap=True)
+        table.add_column("Function", style="blue")
+        table.add_column("Warning", style="yellow")
+        table.add_column("Uses", style="white")
+
+        sev_colors = {
+            "CRITICAL": "bold red",
+            "HIGH": "red",
+            "MEDIUM": "yellow",
+            "LOW": "blue",
+        }
+        for w in filtered:
+            sc = sev_colors.get(w.severity.value, "white")
+            table.add_row(
+                f"[{sc}]{w.severity.value}[/{sc}]",
+                w.permission,
+                w.function_name,
+                w.message[:60] + ("..." if len(w.message) > 60 else ""),
+                str(w.usage_count),
+            )
+        console.print(table)
+
+        # Detailed remediation for critical/high
+        critical_high = [w for w in filtered if w.severity.value in ('CRITICAL', 'HIGH')]
+        if critical_high:
+            console.print("\n[bold red]🔴 Critical / High Details:[/bold red]")
+            for w in critical_high:
+                console.print(f"  [bold]{w.permission}[/bold] → [cyan]{w.function_name}[/cyan]")
+                console.print(f"    {w.detail}")
+                console.print(f"    [green]Remediation:[/green] {w.remediation}\n")
+
+    if report.safe_permissions:
+        console.print("[bold green]✅ Safe to remove:[/bold green] "
+                      + ", ".join(report.safe_permissions))
+
 
 def _display_results(policies, report, verbose=False):
     """Display analysis results in a formatted way"""

@@ -1,11 +1,13 @@
 """
 Simulation Module
 
-Policy drift detection and permission simulation engine for AdaPol.
+Policy drift detection, permission simulation engine, and failure
+prediction for AdaPol.
 
 Components:
-- drift_detector: Historical policy tracking and change detection
-- simulator: Permission removal simulation and failure prediction
+- drift_detector  : Historical policy tracking and change detection
+- simulator       : Permission removal simulation with confidence scoring
+- failure_predictor: Human-readable failure warnings per function
 """
 
 from .drift_detector import (
@@ -14,7 +16,7 @@ from .drift_detector import (
     DriftReport,
     PermissionChange,
     ChangeType,
-    RiskCategory
+    RiskCategory,
 )
 
 from .simulator import (
@@ -24,7 +26,14 @@ from .simulator import (
     FunctionExecutionProfile,
     SimulationResult,
     SafetyLevel,
-    PermissionUsagePattern
+    PermissionUsagePattern,
+)
+
+from .failure_predictor import (
+    FailurePredictor,
+    FailureWarning,
+    FailurePredictionReport,
+    FailureSeverity,
 )
 
 __all__ = [
@@ -43,4 +52,9 @@ __all__ = [
     "SimulationResult",
     "SafetyLevel",
     "PermissionUsagePattern",
+    # Failure Prediction
+    "FailurePredictor",
+    "FailureWarning",
+    "FailurePredictionReport",
+    "FailureSeverity",
 ]
