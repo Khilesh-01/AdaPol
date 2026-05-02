@@ -1,0 +1,190 @@
+[
+  {
+    "timestamp": "2024-05-02T10:15:23.123Z",
+    "function_id": "user_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/user_processor_role",
+    "api_action": "dynamodb:GetItem",
+    "resource_accessed": "arn:aws:dynamodb:us-east-1:123456789012:table/users",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-001",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:15:24.456Z",
+    "function_id": "user_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/user_processor_role",
+    "api_action": "dynamodb:Query",
+    "resource_accessed": "arn:aws:dynamodb:us-east-1:123456789012:table/users",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-001",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:15:25.789Z",
+    "function_id": "user_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/user_processor_role",
+    "api_action": "sts:AssumeRole",
+    "resource_accessed": "arn:aws:iam::123456789012:role/order_processor_role",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-002",
+      "invocation_type": "event",
+      "anomaly_score": 0.85
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:01.234Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "s3:GetObject",
+    "resource_accessed": "arn:aws:s3:::company-orders-bucket-unique-123456789012/orders.csv",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-003",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:02.567Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "s3:PutObject",
+    "resource_accessed": "arn:aws:s3:::company-orders-bucket-unique-123456789012/processed/orders.json",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-003",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:03.890Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "lambda:InvokeFunction",
+    "resource_accessed": "arn:aws:lambda:us-east-1:123456789012:function:user_processor",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-004",
+      "invocation_type": "event",
+      "anomaly_score": 0.72
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:04.123Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "sts:AssumeRole",
+    "resource_accessed": "arn:aws:iam::123456789012:role/admin_role",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-005",
+      "invocation_type": "event",
+      "anomaly_score": 0.95
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:05.456Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "iam:ListUsers",
+    "resource_accessed": "arn:aws:iam::123456789012:*",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-006",
+      "invocation_type": "event",
+      "anomaly_score": 0.98
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:06.789Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "iam:AttachUserPolicy",
+    "resource_accessed": "arn:aws:iam::123456789012:user/developer",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-006",
+      "invocation_type": "event",
+      "anomaly_score": 1.0
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:07.012Z",
+    "function_id": "user_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/user_processor_role",
+    "api_action": "dynamodb:Scan",
+    "resource_accessed": "arn:aws:dynamodb:us-east-1:123456789012:table/users",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-007",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:08.345Z",
+    "function_id": "admin_task",
+    "caller_principal": "arn:aws:iam::123456789012:role/admin_role",
+    "api_action": "iam:GetUser",
+    "resource_accessed": "arn:aws:iam::123456789012:user/admin",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-008",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:09.678Z",
+    "function_id": "admin_task",
+    "caller_principal": "arn:aws:iam::123456789012:role/admin_role",
+    "api_action": "s3:*",
+    "resource_accessed": "arn:aws:s3:::*",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-009",
+      "invocation_type": "event",
+      "wildcard_detected": true
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:10.901Z",
+    "function_id": "admin_task",
+    "caller_principal": "arn:aws:iam::123456789012:role/admin_role",
+    "api_action": "rds:DescribeDBInstances",
+    "resource_accessed": "arn:aws:rds:us-east-1:123456789012:db:production-db",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-010",
+      "invocation_type": "event"
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:11.123Z",
+    "function_id": "user_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/user_processor_role",
+    "api_action": "s3:GetObject",
+    "resource_accessed": "arn:aws:s3:::company-orders-bucket-unique-123456789012/sensitive/config.json",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-011",
+      "invocation_type": "event",
+      "anomaly_score": 0.80
+    }
+  },
+  {
+    "timestamp": "2024-05-02T10:16:12.456Z",
+    "function_id": "order_processor",
+    "caller_principal": "arn:aws:iam::123456789012:role/order_processor_role",
+    "api_action": "dynamodb:GetItem",
+    "resource_accessed": "arn:aws:dynamodb:us-east-1:123456789012:table/users",
+    "cloud_provider": "aws",
+    "invocation_context": {
+      "request_id": "req-012",
+      "invocation_type": "event",
+      "anomaly_score": 0.75
+    }
+  }
+]
