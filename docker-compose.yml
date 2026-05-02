@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  adapol:
+    build: .
+    container_name: adapol-system
+    volumes:
+      - ./examples:/app/examples:ro
+      - ./output:/app/output
+      - ./config:/app/config:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ADAPOL_LOG_LEVEL=INFO
+    networks:
+      - adapol-network
+
+  # Optional: Add a database for storing analysis results
+  postgres:
+    image: postgres:15-alpine
+    container_name: adapol-db
+    environment:
+      POSTGRES_DB: adapol
+      POSTGRES_USER: adapol
+      POSTGRES_PASSWORD: adapol_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - adapol-network
+    ports:
+      - "5432:5432"
+
+  # Optional: Add Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: adapol-cache
+    networks:
+      - adapol-network
+    ports:
+      - "6379:6379"
+
+networks:
+  adapol-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

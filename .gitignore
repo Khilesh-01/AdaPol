@@ -4,5 +4,6 @@ config/
 Documentation/adapol_commands.txt
 tests/
 venv/
-docker-compose.yml
-Dockerfile
+Documentation/Adapol_AI_report.pdf
+Documentation/Adapol_Plag_Report.pdf
+Documentation/AdaPol-IEEE.docx

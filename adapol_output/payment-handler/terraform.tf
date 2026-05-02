@@ -11,13 +11,13 @@ resource "aws_iam_policy" "payment_handler_least_privilege_policy" {
         "logs.amazonaws.com"
       ],
       "Resource": [
-        "CreateLogStream:arn:aws:lambda:us-east-1:123456789012:function:payment-handler"
+        "PutLogEvents:arn:aws:lambda:us-east-1:123456789012:function:payment-handler"
       ]
     },
     {
       "Effect": "Allow",
       "Action": [
-        "logs.amazonaws.com:CreateLogStream"
+        "logs.amazonaws.com:PutLogEvents"
       ],
       "Resource": [
         "aws_iam_role.lambda_role.arn"

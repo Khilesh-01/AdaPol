@@ -8,10 +8,10 @@ resource "aws_iam_policy" "notification_service_least_privilege_policy" {
     {
       "Effect": "Allow",
       "Action": [
-        "logs.amazonaws.com"
+        "lambda.amazonaws.com"
       ],
       "Resource": [
-        "CreateLogStream:arn:aws:lambda:us-east-1:123456789012:function:notification-service"
+        "InvokeFunction:arn:aws:lambda:us-east-1:123456789012:function:notification-service"
       ]
     },
     {

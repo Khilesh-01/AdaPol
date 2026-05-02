@@ -3,26 +3,26 @@
   "cloud_provider": "aws",
   "rules": [
     {
-      "action": "dynamodb.amazonaws.com",
-      "resource": "PutItem:arn:aws:dynamodb:us-east-1:123456789012:table/Orders",
+      "action": "s3.amazonaws.com",
+      "resource": "PutObject:arn:aws:s3:::my-bucket/data-1.json",
       "effect": "Allow",
       "condition": null
     },
     {
       "action": "s3.amazonaws.com",
-      "resource": "GetObject:arn:aws:s3:::my-bucket/data-1.json",
+      "resource": "PutObject:arn:aws:s3:::my-bucket/data-2.json",
+      "effect": "Allow",
+      "condition": null
+    },
+    {
+      "action": "s3.amazonaws.com",
+      "resource": "PutObject:arn:aws:s3:::my-bucket/data-4.json",
       "effect": "Allow",
       "condition": null
     },
     {
       "action": "dynamodb.amazonaws.com",
       "resource": "GetItem:arn:aws:dynamodb:us-east-1:123456789012:table/Orders",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "logs.amazonaws.com",
-      "resource": "CreateLogStream:arn:aws:lambda:us-east-1:123456789012:function:order-processor",
       "effect": "Allow",
       "condition": null
     },
@@ -34,90 +34,42 @@
     },
     {
       "action": "s3.amazonaws.com",
-      "resource": "GetObject:arn:aws:s3:::my-bucket/data-14.json",
+      "resource": "GetObject:arn:aws:s3:::my-bucket/data-7.json",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "logs.amazonaws.com",
-      "resource": "PutLogEvents:arn:aws:lambda:us-east-1:123456789012:function:order-processor",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "lambda.amazonaws.com",
-      "resource": "InvokeFunction:arn:aws:lambda:us-east-1:123456789012:function:order-processor",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "lambda.amazonaws.com:InvokeFunction",
+      "action": "dynamodb.amazonaws.com:GetItem",
       "resource": "aws_s3_bucket.data_bucket.bucket",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "lambda.amazonaws.com:InvokeFunction",
+      "action": "dynamodb.amazonaws.com:GetItem",
       "resource": "aws_dynamodb_table.orders.name",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "lambda.amazonaws.com:InvokeFunction",
+      "action": "dynamodb.amazonaws.com:GetItem",
       "resource": "aws_iam_role.lambda_role.arn",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "dynamodb.amazonaws.com:PutItem",
+      "action": "s3.amazonaws.com:PutObject",
       "resource": "aws_s3_bucket.data_bucket.bucket",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "dynamodb.amazonaws.com:PutItem",
+      "action": "s3.amazonaws.com:PutObject",
       "resource": "aws_dynamodb_table.orders.name",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "dynamodb.amazonaws.com:PutItem",
-      "resource": "aws_iam_role.lambda_role.arn",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "logs.amazonaws.com:PutLogEvents",
-      "resource": "aws_s3_bucket.data_bucket.bucket",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "logs.amazonaws.com:PutLogEvents",
-      "resource": "aws_dynamodb_table.orders.name",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "logs.amazonaws.com:PutLogEvents",
-      "resource": "aws_iam_role.lambda_role.arn",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "s3.amazonaws.com:GetObject",
-      "resource": "aws_s3_bucket.data_bucket.bucket",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "s3.amazonaws.com:GetObject",
-      "resource": "aws_dynamodb_table.orders.name",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "s3.amazonaws.com:GetObject",
+      "action": "s3.amazonaws.com:PutObject",
       "resource": "aws_iam_role.lambda_role.arn",
       "effect": "Allow",
       "condition": null
@@ -141,49 +93,31 @@
       "condition": null
     },
     {
-      "action": "logs.amazonaws.com:CreateLogStream",
+      "action": "s3.amazonaws.com:GetObject",
       "resource": "aws_s3_bucket.data_bucket.bucket",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "logs.amazonaws.com:CreateLogStream",
+      "action": "s3.amazonaws.com:GetObject",
       "resource": "aws_dynamodb_table.orders.name",
       "effect": "Allow",
       "condition": null
     },
     {
-      "action": "logs.amazonaws.com:CreateLogStream",
-      "resource": "aws_iam_role.lambda_role.arn",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "dynamodb.amazonaws.com:GetItem",
-      "resource": "aws_s3_bucket.data_bucket.bucket",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "dynamodb.amazonaws.com:GetItem",
-      "resource": "aws_dynamodb_table.orders.name",
-      "effect": "Allow",
-      "condition": null
-    },
-    {
-      "action": "dynamodb.amazonaws.com:GetItem",
+      "action": "s3.amazonaws.com:GetObject",
       "resource": "aws_iam_role.lambda_role.arn",
       "effect": "Allow",
       "condition": null
     }
   ],
-  "risk_reduction": 0,
+  "risk_reduction": 95.0,
   "evidence": [
-    "Observed 7 unique API actions",
-    "Accessed 4 distinct resources",
-    "Based on 14 API calls over observation period",
-    "Generated 29 least-privilege rules",
+    "Observed 4 unique API actions",
+    "Accessed 5 distinct resources",
+    "Based on 7 API calls over observation period",
+    "Generated 18 least-privilege rules",
     "Risk score: 0.00/10.0"
   ],
-  "generated_at": "2026-01-24T10:59:01.304260+00:00"
+  "generated_at": "2026-04-29T17:36:06.731852+00:00"
 }
