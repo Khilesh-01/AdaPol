@@ -59,6 +59,12 @@ try:
 except ImportError:
     _AI_AVAILABLE = False
 
+# Import evaluation module
+from .evaluation import (
+    BenchmarkPipeline,
+    generate_synthetic_dataset,
+)
+
 console = Console()
 
 @click.group()
@@ -1479,6 +1485,61 @@ def _display_parsed_command(parsed) -> None:
         console.print(f"\n[yellow]⚠️  Required inputs:[/yellow] {', '.join(parsed.requires_files)}")
     if parsed.alternatives:
         console.print(f"\n[dim]Alternatives: {', '.join(parsed.alternatives)}[/dim]")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EVALUATION COMMANDS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@cli.command("run-benchmark")
+@click.option('--dataset', '-d', type=click.Path(exists=True), default=None,
+              help='Path to a JSON dataset file. If omitted, a synthetic dataset is generated.')
+@click.option('--apps', '-n', default=5, show_default=True,
+              help='Number of synthetic apps to generate (ignored if --dataset is given).')
+@click.option('--output', '-o', default='eval_results', show_default=True,
+              help='Directory to write JSON reports and charts.')
+@click.option('--seed', default=42, show_default=True,
+              help='Random seed for reproducibility.')
+@click.option('--plot', is_flag=True, default=False,
+              help='Generate matplotlib PNG charts (requires matplotlib).')
+def run_benchmark(dataset, apps, output, seed, plot):
+    """Run the full evaluation pipeline and print metric tables"""
+    console.print(Panel.fit("📊 AdaPol Evaluation Framework", style="bold magenta"))
+    pipeline = BenchmarkPipeline(output_dir=output, seed=seed)
+    try:
+        if dataset:
+            console.print(f"[cyan]Loading dataset from {dataset}[/cyan]")
+            run = pipeline.run_from_json(dataset)
+        else:
+            run = pipeline.run(n_apps=apps)
+        pipeline.print_report(run)
+        pipeline.save_report(run)
+        if plot:
+            pipeline.plot(run, output_dir=output)
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("generate-dataset")
+@click.option('--apps', '-n', default=5, show_default=True,
+              help='Number of synthetic apps to generate.')
+@click.option('--output', '-o', default='eval_results/synthetic_dataset.json', show_default=True,
+              help='Output JSON file path.')
+@click.option('--seed', default=42, show_default=True,
+              help='Random seed for reproducibility.')
+def generate_dataset(apps, output, seed):
+    """Generate a reusable synthetic policy dataset and save to JSON"""
+    console.print(Panel.fit("🧪 Synthetic Dataset Generator", style="bold cyan"))
+    pipeline = BenchmarkPipeline(output_dir=str(Path(output).parent), seed=seed)
+    try:
+        dataset = generate_synthetic_dataset(n_apps=apps, seed=seed)
+        path = pipeline.save_dataset(dataset, path=output)
+        console.print(f"  Generated [bold]{apps}[/bold] apps with [bold]{sum(len(a.functions) for a in dataset)}[/bold] functions total.")
+        console.print(f"  Use with: [bold]adapol run-benchmark --dataset {path}[/bold]")
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
 
 
 if __name__ == '__main__':

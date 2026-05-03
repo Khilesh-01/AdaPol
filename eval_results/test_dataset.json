@@ -1,0 +1,566 @@
+{
+  "apps": [
+    {
+      "app_id": "app_01",
+      "functions": [
+        {
+          "original": {
+            "function_id": "app_01_api_handler_0",
+            "permissions": [
+              "dynamodb:DeleteItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "dynamodb:UpdateItem",
+              "kms:Decrypt",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sts:AssumeRole"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 0,
+            "resource_count": 7
+          },
+          "ground_truth": {
+            "function_id": "app_01_api_handler_0",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:PutObject"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "kms:Decrypt",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:PutObject"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:GetItem",
+              "logs:PutLogEvents",
+              "s3:GetObject"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_01_reporting_service_1",
+            "permissions": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 1
+          },
+          "ground_truth": {
+            "function_id": "app_01_reporting_service_1",
+            "required_permissions": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "ses:SendEmail"
+            ],
+            "used_in_logs": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:PutObject",
+              "ses:SendEmail"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:Scan",
+              "ses:SendEmail"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_01_data_processor_2",
+            "permissions": [
+              "dynamodb:BatchWriteItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sns:Publish",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 1
+          },
+          "ground_truth": {
+            "function_id": "app_01_data_processor_2",
+            "required_permissions": [
+              "dynamodb:BatchWriteItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:PutObject",
+              "sqs:ReceiveMessage"
+            ],
+            "used_in_logs": [
+              "dynamodb:BatchWriteItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:PutObject",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:PutItem",
+              "s3:GetObject",
+              "sqs:ReceiveMessage"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_01_api_handler_3",
+            "permissions": [
+              "dynamodb:DeleteItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "dynamodb:UpdateItem",
+              "kms:Decrypt",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sts:AssumeRole"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 0,
+            "resource_count": 6
+          },
+          "ground_truth": {
+            "function_id": "app_01_api_handler_3",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:GetItem",
+              "logs:PutLogEvents",
+              "s3:GetObject"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_01_api_handler_4",
+            "permissions": [
+              "dynamodb:DeleteItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "dynamodb:UpdateItem",
+              "kms:Decrypt",
+              "kms:GenerateDataKey",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sts:AssumeRole"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 5
+          },
+          "ground_truth": {
+            "function_id": "app_01_api_handler_4",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:PutObject"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:PutObject"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:GetItem",
+              "logs:PutLogEvents",
+              "s3:GetObject"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "app_id": "app_02",
+      "functions": [
+        {
+          "original": {
+            "function_id": "app_02_batch_job_0",
+            "permissions": [
+              "dynamodb:BatchWriteItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "ec2:DescribeInstances",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 0,
+            "resource_count": 6
+          },
+          "ground_truth": {
+            "function_id": "app_02_batch_job_0",
+            "required_permissions": [
+              "dynamodb:BatchWriteItem",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:PutObject",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "used_in_logs": [
+              "dynamodb:BatchWriteItem",
+              "ec2:DescribeInstances",
+              "logs:PutLogEvents",
+              "s3:DeleteObject",
+              "s3:GetObject",
+              "s3:PutObject",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:BatchWriteItem",
+              "s3:GetObject",
+              "sqs:ReceiveMessage"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_02_data_processor_1",
+            "permissions": [
+              "dynamodb:BatchWriteItem",
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sns:Publish",
+              "sqs:DeleteMessage",
+              "sqs:ReceiveMessage",
+              "sqs:SendMessage"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 5
+          },
+          "ground_truth": {
+            "function_id": "app_02_data_processor_1",
+            "required_permissions": [
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sqs:ReceiveMessage"
+            ],
+            "used_in_logs": [
+              "dynamodb:PutItem",
+              "dynamodb:Query",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "sqs:ReceiveMessage"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:PutItem",
+              "s3:GetObject",
+              "sqs:ReceiveMessage"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_02_auth_service_2",
+            "permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "iam:AttachRolePolicy",
+              "iam:GetUser",
+              "iam:ListUsers",
+              "kms:Decrypt",
+              "kms:Encrypt",
+              "logs:CreateLogGroup",
+              "logs:PutLogEvents",
+              "secretsmanager:GetSecretValue",
+              "sts:AssumeRole",
+              "sts:GetCallerIdentity"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 0,
+            "resource_count": 6
+          },
+          "ground_truth": {
+            "function_id": "app_02_auth_service_2",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "iam:ListUsers",
+              "kms:Decrypt",
+              "logs:PutLogEvents",
+              "sts:AssumeRole"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "iam:AttachRolePolicy",
+              "iam:ListUsers",
+              "kms:Decrypt",
+              "logs:PutLogEvents",
+              "sts:AssumeRole",
+              "sts:GetCallerIdentity"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:GetItem",
+              "kms:Decrypt",
+              "sts:AssumeRole"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "app_id": "app_03",
+      "functions": [
+        {
+          "original": {
+            "function_id": "app_03_reporting_service_0",
+            "permissions": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 4
+          },
+          "ground_truth": {
+            "function_id": "app_03_reporting_service_0",
+            "required_permissions": [
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "ses:SendEmail"
+            ],
+            "used_in_logs": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:Scan",
+              "ses:SendEmail"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_03_reporting_service_1",
+            "permissions": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 1,
+            "resource_count": 4
+          },
+          "ground_truth": {
+            "function_id": "app_03_reporting_service_1",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "ses:SendEmail"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:*",
+              "s3:GetObject",
+              "s3:PutObject",
+              "ses:SendEmail"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:Scan",
+              "ses:SendEmail"
+            ]
+          }
+        },
+        {
+          "original": {
+            "function_id": "app_03_reporting_service_2",
+            "permissions": [
+              "cloudwatch:PutMetricData",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "s3:PutObject",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "risk_score": 100.0,
+            "wildcard_count": 0,
+            "resource_count": 7
+          },
+          "ground_truth": {
+            "function_id": "app_03_reporting_service_2",
+            "required_permissions": [
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "ses:SendEmail"
+            ],
+            "used_in_logs": [
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "logs:PutLogEvents",
+              "s3:GetObject",
+              "s3:ListBucket",
+              "ses:SendEmail",
+              "sns:Publish"
+            ],
+            "causes_breakage_if_removed": [
+              "dynamodb:Scan",
+              "ses:SendEmail"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
