@@ -47,6 +47,18 @@ from .simulation import (
     FailureSeverity,
 )
 
+# Import AI modules (optional — graceful degradation if key not set)
+try:
+    from .ai import (
+        AdaPolExplainer,
+        NLInterface,
+        ParsedCommand,
+        CommandIntent,
+    )
+    _AI_AVAILABLE = True
+except ImportError:
+    _AI_AVAILABLE = False
+
 console = Console()
 
 @click.group()
@@ -1255,6 +1267,219 @@ def _display_risk_report_table(assessment: 'RiskAssessment'):
     except Exception as e:
         console.print(f"\n[red]Error: {e}[/red]")
         sys.exit(1)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI COMMANDS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _require_ai() -> 'AdaPolExplainer':
+    """Return an AdaPolExplainer or abort with a helpful message."""
+    if not _AI_AVAILABLE:
+        console.print("[red]❌ google-generativeai not installed.[/red]")
+        console.print("   Run: [bold]pip install google-generativeai[/bold]")
+        raise SystemExit(1)
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        console.print("[red]❌ GEMINI_API_KEY environment variable is not set.[/red]")
+        console.print("   Export it first:  [bold]set GEMINI_API_KEY=your_key[/bold]")
+        raise SystemExit(1)
+    return AdaPolExplainer(api_key=api_key)
+
+
+@cli.command("explain-policy")
+@click.option('--policy', '-p', type=click.Path(exists=True), required=True,
+              help='Path to a policy JSON file')
+@click.option('--function-id', '-f', default='',
+              help='Function identifier (inferred from file if omitted)')
+def explain_policy(policy: str, function_id: str):
+    """Use Gemini to explain a generated policy in plain English"""
+    console.print(Panel.fit("🤖 AI Policy Explanation", style="bold magenta"))
+    explainer = _require_ai()
+    try:
+        with open(policy) as f:
+            data = json.load(f)
+        fid = function_id or data.get('function_id', Path(policy).stem)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Asking Gemini…", total=None)
+            result = explainer.explain_policy(fid, data)
+            p.update(t, completed=True)
+        _display_explained_policy(result)
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("explain-attack-paths")
+@click.option('--attack-paths', '-a', type=click.Path(exists=True), required=True,
+              help='Path to attack paths JSON file (from analyze-attack-paths --format json)')
+@click.option('--top', '-n', default=3, help='Number of top paths to explain')
+def explain_attack_paths(attack_paths: str, top: int):
+    """Use Gemini to narrate detected attack paths in plain English"""
+    console.print(Panel.fit("🤖 AI Attack Path Explanation", style="bold magenta"))
+    explainer = _require_ai()
+    try:
+        with open(attack_paths) as f:
+            data = json.load(f)
+        paths = data.get('top_paths', data) if isinstance(data, dict) else data
+        paths = paths[:top]
+        if not paths:
+            console.print("[yellow]No attack paths found in file.[/yellow]")
+            return
+        for i, path_data in enumerate(paths, 1):
+            console.print(f"\n[bold cyan]Path {i} of {len(paths)}[/bold cyan]")
+            with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+                t = p.add_task(f"Explaining path {path_data.get('path_id','?')}…", total=None)
+                result = explainer.explain_attack_path(path_data)
+                p.update(t, completed=True)
+            _display_explained_attack_path(result)
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("explain-risk-report")
+@click.option('--report', '-r', type=click.Path(exists=True), required=True,
+              help='Path to risk report JSON file (from show-risk-report --format json)')
+def explain_risk_report(report: str):
+    """Use Gemini to produce an executive summary of a risk assessment"""
+    console.print(Panel.fit("🤖 AI Risk Report Explanation", style="bold magenta"))
+    explainer = _require_ai()
+    try:
+        with open(report) as f:
+            data = json.load(f)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Generating executive summary…", total=None)
+            result = explainer.explain_risk_report(data)
+            p.update(t, completed=True)
+        _display_explained_risk_report(result)
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("explain-drift")
+@click.option('--drift', '-d', type=click.Path(exists=True), required=True,
+              help='Path to a drift report JSON file (from compare-policy --format json)')
+def explain_drift(drift: str):
+    """Use Gemini to explain a policy drift report in plain English"""
+    console.print(Panel.fit("🤖 AI Drift Explanation", style="bold magenta"))
+    explainer = _require_ai()
+    try:
+        with open(drift) as f:
+            data = json.load(f)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Explaining drift…", total=None)
+            text = explainer.explain_drift_report(data)
+            p.update(t, completed=True)
+        console.print(Panel(text, title="📋 Drift Explanation", border_style="yellow"))
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("explain-simulation")
+@click.option('--simulation', '-s', type=click.Path(exists=True), required=True,
+              help='Path to a simulation result JSON file (from simulate-removal --format json)')
+def explain_simulation(simulation: str):
+    """Use Gemini to explain a permission removal simulation result"""
+    console.print(Panel.fit("🤖 AI Simulation Explanation", style="bold magenta"))
+    explainer = _require_ai()
+    try:
+        with open(simulation) as f:
+            data = json.load(f)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Explaining simulation…", total=None)
+            text = explainer.explain_simulation_result(data)
+            p.update(t, completed=True)
+        console.print(Panel(text, title="📋 Simulation Explanation", border_style="cyan"))
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+@cli.command("ask")
+@click.argument('query')
+@click.option('--execute', '-x', is_flag=True,
+              help='Execute the suggested command automatically after confirmation')
+def ask(query: str, execute: bool):
+    """Translate a natural-language query into an AdaPol CLI command"""
+    console.print(Panel.fit("🤖 AdaPol Natural Language Interface", style="bold magenta"))
+    if not _AI_AVAILABLE:
+        console.print("[red]❌ google-generativeai not installed. Run: pip install google-generativeai[/red]")
+        return
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    try:
+        nl = NLInterface(api_key=api_key if api_key else None)
+        with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console) as p:
+            t = p.add_task("Interpreting query…", total=None)
+            parsed = nl.parse(query)
+            p.update(t, completed=True)
+        _display_parsed_command(parsed)
+        if execute and parsed.cli_command and "<placeholder>" not in parsed.cli_command:
+            if click.confirm(f"\n▶  Run: [bold]{parsed.cli_command}[/bold]?"):
+                import subprocess
+                subprocess.run(parsed.cli_command, shell=True)
+        elif execute:
+            console.print("[yellow]⚠️  Command contains placeholders — fill them in before running.[/yellow]")
+    except Exception as e:
+        console.print(f"[red]❌ {e}[/red]")
+        import traceback; traceback.print_exc()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI DISPLAY HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _display_explained_policy(result) -> None:
+    console.print(Panel(result.explanation, title=f"📄 Policy — {result.function_id}", border_style="magenta"))
+    console.print(f"\n[bold]Risk Summary:[/bold] {result.risk_summary}")
+    if result.key_concerns:
+        console.print("\n[bold red]⚠️  Key Concerns:[/bold red]")
+        for c in result.key_concerns:
+            console.print(f"  • {c}")
+    if result.recommendations:
+        console.print("\n[bold green]✅ Recommendations:[/bold green]")
+        for r in result.recommendations:
+            console.print(f"  • {r}")
+
+
+def _display_explained_attack_path(result) -> None:
+    console.print(Panel(result.narrative, title=f"🗺️  Path {result.path_id} — Narrative", border_style="red"))
+    console.print(f"\n[bold]Severity Rationale:[/bold] {result.severity_rationale}")
+    console.print(f"[bold green]Mitigation:[/bold green] {result.mitigation}")
+
+
+def _display_explained_risk_report(result) -> None:
+    console.print(Panel(result.executive_summary, title="📊 Executive Summary", border_style="magenta"))
+    if result.top_risks:
+        console.print("\n[bold red]🔴 Top Risks:[/bold red]")
+        for r in result.top_risks:
+            console.print(f"  • {r}")
+    if result.immediate_actions:
+        console.print("\n[bold yellow]⚡ Immediate Actions:[/bold yellow]")
+        for a in result.immediate_actions:
+            console.print(f"  • {a}")
+    if result.positive_findings:
+        console.print("\n[bold green]✅ Positive Findings:[/bold green]")
+        for pf in result.positive_findings:
+            console.print(f"  • {pf}")
+
+
+def _display_parsed_command(parsed) -> None:
+    conf_color = "green" if parsed.confidence >= 0.8 else "yellow" if parsed.confidence >= 0.5 else "red"
+    summary = (
+        f"[bold cyan]Intent:[/bold cyan]     {parsed.intent.value}\n"
+        f"[bold cyan]Confidence:[/bold cyan] [{conf_color}]{parsed.confidence:.0%}[/{conf_color}]\n"
+        f"[bold cyan]Reasoning:[/bold cyan]  {parsed.explanation}"
+    )
+    console.print(Panel(summary, title="🧠 Query Interpretation", border_style="magenta"))
+    console.print(f"\n[bold]Suggested command:[/bold]")
+    console.print(f"  [bold green]{parsed.cli_command}[/bold green]")
+    if parsed.requires_files:
+        console.print(f"\n[yellow]⚠️  Required inputs:[/yellow] {', '.join(parsed.requires_files)}")
+    if parsed.alternatives:
+        console.print(f"\n[dim]Alternatives: {', '.join(parsed.alternatives)}[/dim]")
+
 
 if __name__ == '__main__':
     main()
